@@ -3,38 +3,53 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-"""
-# Welcome to Streamlit!
+st.title("NFL Down and Distance Analysis")
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+dnd = pd.read_csv("Leaguewide_NFL_Down and Distance(1).csv")
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+week_1_matchups = ['BAL @ KC', 'GB @ PHI', 'PIT @ ATL', 'ARI @ BUF', 'TEN @ CHI', 
+                   'NE @ CIN', 'HOU @ IND', 'JAX @ MIA', 'CAR @ NO', 'MIN @ NYG', 
+                   'LV @ LAC', 'DEN @ SEA', 'DAL @ CLE', 'WAS @ TB', 'LA @ DET', 'NYJ @ SF']
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+game_selection = st.selectbox("Select a game", week_1_matchups)
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+team1, team2 = game_selection.split(' @ ')
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+team1_dnd_filtered = dnd.loc[dnd['Team'] == team1, ['Team', 'Down & Distance', 'Run %', 'Pass %']]
+team2_dnd_filtered = dnd.loc[dnd['Team'] == team2, ['Team', 'Down & Distance', 'Run %', 'Pass %']]
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
+col1, col2 = st.beta_columns(2)
 
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+with col1:
+    st.header(f"{team1} Data")
+    st.dataframe(team1_dnd_filtered, width=0)
+
+with col2:
+    st.header(f"{team2} Data")
+    st.dataframe(team2_dnd_filtered, width=0)
+
+grouped = dnd.groupby('Down & Distance')
+sums = grouped[['Total Runs', 'Total Passes', 'Total Plays']].sum()
+sums['Run %'] = (sums['Total Runs'] / sums['Total Plays']) * 100
+sums['Pass %'] = (sums['Total Passes'] / sums['Total Plays']) * 100
+
+st.header("League Averages")
+st.write(sums)
+
+dnd['Total Runs'] = dnd['Total Runs'].astype(int)
+dnd['Total Passes'] = dnd['Total Passes'].astype(int)
+dnd['Total Plays'] = dnd['Total Plays'].astype(int)
+
+grouped = dnd.groupby(['Down & Distance', 'Team'])
+sums = grouped[['Total Runs', 'Total Passes', 'Total Plays']].sum()
+sums['Run %'] = (sums['Total Runs'] / sums['Total Plays']) * 100
+sums['Pass %'] = (sums['Total Passes'] / sums['Total Plays']) * 100
+
+max_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nlargest(1, 'Run %'))
+min_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nsmallest(1, 'Run %'))
+
+st.header("Team with the Highest Average Percentage")
+st.write(max_percentages[['Run %', 'Pass %', 'Total Runs', 'Total Passes', 'Total Plays']])
+
+st.header("Team with the Lowest Average Percentage")
+st.write(min_percentages[['Run %', 'Pass %', 'Total Runs', 'Total Passes', 'Total Plays']])
