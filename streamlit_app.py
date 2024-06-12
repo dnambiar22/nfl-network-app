@@ -46,11 +46,20 @@ sums = grouped[['Total Runs', 'Total Passes', 'Total Plays']].sum()
 sums['Run %'] = (sums['Total Runs'] / sums['Total Plays']) * 100
 sums['Pass %'] = (sums['Total Passes'] / sums['Total Plays']) * 100
 
-max_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nlargest(1, 'Run %'))
-min_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nsmallest(1, 'Run %'))
+max_run_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nlargest(1, 'Run %')).reset_index()
+max_pass_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nlargest(1, 'Pass %')).reset_index()
 
-st.header("Team with the Highest Average Percentage")
-st.write(max_percentages[['Run %', 'Pass %', 'Total Runs', 'Total Passes', 'Total Plays']])
+min_run_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nsmallest(1, 'Run %')).reset_index()
+min_pass_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nsmallest(1, 'Pass %')).reset_index()
 
-st.header("Team with the Lowest Average Percentage")
-st.write(min_percentages[['Run %', 'Pass %', 'Total Runs', 'Total Passes', 'Total Plays']])
+st.header("Team with the Highest Run Percentage")
+st.write(max_run_percentages[['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']])
+
+st.header("Team with the Highest Pass Percentage")
+st.write(max_pass_percentages[['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']])
+
+st.header("Team with the Lowest Run Percentage")
+st.write(min_run_percentages[['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']])
+
+st.header("Team with the Lowest Pass Percentage")
+st.write(min_pass_percentages[['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']])
