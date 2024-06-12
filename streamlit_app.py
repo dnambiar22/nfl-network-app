@@ -5,6 +5,7 @@ import streamlit as st
 
 st.title("NFL Down and Distance Analysis")
 
+st.subheader("Comparing the Down and Distance Stats for each of the upcoming 2024 Week 1 NFL Games")
 dnd = pd.read_csv("Leaguewide_NFL_Down and Distance(1).csv")
 
 week_1_matchups = ['BAL @ KC', 'GB @ PHI', 'PIT @ ATL', 'ARI @ BUF', 'TEN @ CHI', 
