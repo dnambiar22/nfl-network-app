@@ -18,15 +18,15 @@ team1, team2 = game_selection.split(' @ ')
 team1_dnd_filtered = dnd.loc[dnd['Team'] == team1, ['Team', 'Down & Distance', 'Run %', 'Pass %']]
 team2_dnd_filtered = dnd.loc[dnd['Team'] == team2, ['Team', 'Down & Distance', 'Run %', 'Pass %']]
 
-col1, col2 = st.beta_columns(2)
+col1, col2 = st.columns([10, 10]) 
 
 with col1:
     st.header(f"{team1} Data")
-    st.dataframe(team1_dnd_filtered, width=0)
+    st.dataframe(team1_dnd_filtered,width=1000)  
 
 with col2:
     st.header(f"{team2} Data")
-    st.dataframe(team2_dnd_filtered, width=0)
+    st.dataframe(team2_dnd_filtered, height=400) 
 
 grouped = dnd.groupby('Down & Distance')
 sums = grouped[['Total Runs', 'Total Passes', 'Total Plays']].sum()
