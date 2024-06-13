@@ -46,11 +46,14 @@ sums = grouped[['Total Runs', 'Total Passes', 'Total Plays']].sum()
 sums['Run %'] = (sums['Total Runs'] / sums['Total Plays']) * 100
 sums['Pass %'] = (sums['Total Passes'] / sums['Total Plays']) * 100
 
-max_run_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nlargest(1, 'Run %')).reset_index()
-max_pass_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nlargest(1, 'Pass %')).reset_index()
+# Reset the index to ensure 'Down & Distance' and 'Team' are columns
+sums = sums.reset_index()
 
-min_run_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nsmallest(1, 'Run %')).reset_index()
-min_pass_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nsmallest(1, 'Pass %')).reset_index()
+max_run_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nlargest(1, 'Run %')).reset_index(drop=True)
+max_pass_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nlargest(1, 'Pass %')).reset_index(drop=True)
+
+min_run_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nsmallest(1, 'Run %')).reset_index(drop=True)
+min_pass_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nsmallest(1, 'Pass %')).reset_index(drop=True)
 
 st.header("Team with the Highest Run Percentage")
 st.write(max_run_percentages[['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']])
