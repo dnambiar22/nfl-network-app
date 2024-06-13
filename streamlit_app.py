@@ -2,11 +2,10 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
-#hi
-st.title("NFL Network Data Science Practicum Project")
 
-st.subheader("Tendency Report - Breaking Down Jacksonville vs. Miami")
+st.title("NFL Network Data Science Practicum Project")
 st.caption("Note: Click three buttons in right corner -> Settings -> Wide Mode for better viewability")
+st.subheader("Tendency Report - Breaking Down Jacksonville vs. Miami")
 dnd = pd.read_csv("Leaguewide_NFL_Down and Distance(1).csv")
 field_positions = pd.read_csv("Leaguewide_NFL_Field Positions.csv")
 
@@ -113,26 +112,34 @@ with col8:
     st.header("Lowest Pass Percentage")
     st.write(min_pass_percentages[['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']])
 
+
+st.markdown("---")
+
+
 sorted_dnd = dnd.sort_values(by=['Down & Distance', 'Run %'], ascending=[True, False])
 sorted_dnd_pass = dnd.sort_values(by=['Down & Distance', 'Pass %'], ascending=[True, False])
-
 sorted_fp = field_positions.sort_values(by=['Field Position', 'Run %'], ascending=[True, False])
 sorted_fp_pass = field_positions.sort_values(by=['Field Position', 'Pass %'], ascending=[True, False])
 
 sorted_dnd['Rank'] = sorted_dnd.groupby('Down & Distance').cumcount() + 1
 sorted_fp['Rank'] = sorted_fp.groupby('Field Position').cumcount() + 1
-
-st.subheader("Down & Distance Sorted by Run Percentage")
-st.dataframe(sorted_dnd[['Down & Distance', 'Team', 'Run %', 'Rank']], width=1000)
-
-st.subheader("Field Position Sorted by Run Percentage")
-st.dataframe(sorted_fp[['Field Position', 'Team', 'Run %', 'Rank']], width=1000)
-
 sorted_dnd_pass['Rank'] = sorted_dnd_pass.groupby('Down & Distance').cumcount() + 1
 sorted_fp_pass['Rank'] = sorted_fp_pass.groupby('Field Position').cumcount() + 1
 
+down_distance_options = sorted_dnd['Down & Distance'].unique()
+selected_down_distance = st.selectbox("Select Down & Distance to View League Ranking", down_distance_options)
+
+filtered_sorted_dnd = sorted_dnd[sorted_dnd['Down & Distance'] == selected_down_distance]
+filtered_sorted_dnd_pass = sorted_dnd_pass[sorted_dnd_pass['Down & Distance'] == selected_down_distance]
+
+st.subheader("Down & Distance Sorted by Run Percentage")
+st.dataframe(filtered_sorted_dnd[['Down & Distance', 'Team', 'Run %', 'Rank']], width=1000)
+
 st.subheader("Down & Distance Sorted by Pass Percentage")
-st.dataframe(sorted_dnd_pass[['Down & Distance', 'Team', 'Pass %', 'Rank']], width=1000)
+st.dataframe(filtered_sorted_dnd_pass[['Down & Distance', 'Team', 'Pass %', 'Rank']], width=1000)
+
+st.subheader("Field Position Sorted by Run Percentage")
+st.dataframe(sorted_fp[['Field Position', 'Team', 'Run %', 'Rank']], width=1000)
 
 st.subheader("Field Position Sorted by Pass Percentage")
 st.dataframe(sorted_fp_pass[['Field Position', 'Team', 'Pass %', 'Rank']], width=1000)
