@@ -16,6 +16,7 @@ week_1_matchups = ['BAL @ KC', 'GB @ PHI', 'PIT @ ATL', 'ARI @ BUF', 'TEN @ CHI'
 jax_dnd_filtered = dnd.loc[dnd['Team'] == 'JAX', ['Team', 'Down & Distance', 'Run %', 'Pass %']]
 mia_dnd_filtered = dnd.loc[dnd['Team'] == 'MIA', ['Team', 'Down & Distance', 'Run %', 'Pass %']]
 
+# Add images for JAX and MIA
 jax_image_url = "jax_img.png"  
 mia_image_url = "mia_img.png" 
 
@@ -23,18 +24,18 @@ col3, col4 = st.columns([10, 10])
 
 with col3:
     st.header("")
-    st.image(jax_image_url, width=100)
+    st.image(jax_image_url, width=100) 
     st.header("JAX Data")
-    st.dataframe(jax_dnd_filtered, width=1000)
+    st.dataframe(jax_dnd_filtered, width=1000, height=425)
 
 with col4:
     st.header("")
-    st.image(mia_image_url, width=100)
+    st.image(mia_image_url, width=100) 
     st.header("MIA Data")
-    st.dataframe(mia_dnd_filtered, width=1000)
+    st.dataframe(mia_dnd_filtered, width=1000, height=425)
 
-jax_fp_filtered = field_positions.loc[field_positions['Team'] == 'JAX', ['Field Position', 'Run %', 'Pass %']]
-mia_fp_filtered = field_positions.loc[field_positions['Team'] == 'MIA', ['Field Position', 'Run %', 'Pass %']]
+jax_fp_filtered = field_positions.loc[field_positions['Team'] == 'JAX', ['Team', 'Field Position', 'Run %', 'Pass %']]
+mia_fp_filtered = field_positions.loc[field_positions['Team'] == 'MIA', ['Team', 'Field Position', 'Run %', 'Pass %']]
 
 st.header("Field Position Data for JAX and MIA")
 
@@ -48,6 +49,11 @@ with col6:
     st.subheader("MIA Field Position Data")
     st.dataframe(mia_fp_filtered, width=1500)
 
+
+st.markdown("---")
+st.subheader("Comparing the Down and Distance Stats for each of the upcoming 2024 Week 1 NFL Games")
+
+
 game_selection = st.selectbox("Select a game", week_1_matchups)
 
 team1, team2 = game_selection.split(' @ ')
@@ -59,11 +65,11 @@ col1, col2 = st.columns([10, 10])
 
 with col1:
     st.header(f"{team1} Data")
-    st.dataframe(team1_dnd_filtered, width=1000)  
+    st.dataframe(team1_dnd_filtered, width=900, height=425)  
 
 with col2:
     st.header(f"{team2} Data")
-    st.dataframe(team2_dnd_filtered, height=400) 
+    st.dataframe(team2_dnd_filtered, width=1000, height=425) 
 
 grouped = dnd.groupby('Down & Distance')
 sums = grouped[['Total Runs', 'Total Passes', 'Total Plays']].sum()
@@ -77,38 +83,34 @@ dnd['Total Runs'] = dnd['Total Runs'].astype(int)
 dnd['Total Passes'] = dnd['Total Passes'].astype(int)
 dnd['Total Plays'] = dnd['Total Plays'].astype(int)
 
-st.subheader("Comparing the Down and Distance Stats for each of the upcoming 2024 Week 1 NFL Games")
-
 grouped = dnd.groupby(['Down & Distance', 'Team'])
 sums = grouped[['Total Runs', 'Total Passes', 'Total Plays']].sum()
 sums['Run %'] = (sums['Total Runs'] / sums['Total Plays']) * 100
 sums['Pass %'] = (sums['Total Passes'] / sums['Total Plays']) * 100
 
+# Reset the index to ensure 'Down & Distance' and 'Team' are columns
 sums = sums.reset_index()
 
-max_run_percentages = sums.groupby('Down & Distance')['Run %'].idxmax()
-max_run_percentages = sums.loc[max_run_percentages, ['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']]
+# Get teams with highest and lowest run and pass percentages
+max_run_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nlargest(1, 'Run %')).reset_index(drop=True)
+max_pass_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nlargest(1, 'Pass %')).reset_index(drop=True)
+min_run_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nsmallest(1, 'Run %')).reset_index(drop=True)
+min_pass_percentages = sums.groupby('Down & Distance').apply(lambda x: x.nsmallest(1, 'Pass %')).reset_index(drop=True)
 
-max_pass_percentages = sums.groupby('Down & Distance')['Pass %'].idxmax()
-max_pass_percentages = sums.loc[max_pass_percentages, ['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']]
+# Display highest and lowest side by side
+col7, col8 = st.columns(2)
 
-min_run_percentages = sums.groupby('Down & Distance')['Run %'].idxmin()
-min_run_percentages = sums.loc[min_run_percentages, ['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']]
+with col7:
+    st.header("Highest Run Percentage")
+    st.write(max_run_percentages[['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']])
+    st.header("Highest Pass Percentage")
+    st.write(max_pass_percentages[['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']])
 
-min_pass_percentages = sums.groupby('Down & Distance')['Pass %'].idxmin()
-min_pass_percentages = sums.loc[min_pass_percentages, ['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']]
-
-st.header("Team with the Highest Run Percentage")
-st.write(max_run_percentages)
-
-st.header("Team with the Highest Pass Percentage")
-st.write(max_pass_percentages)
-
-st.header("Team with the Lowest Run Percentage")
-st.write(min_run_percentages)
-
-st.header("Team with the Lowest Pass Percentage")
-st.write(min_pass_percentages)
+with col8:
+    st.header("Lowest Run Percentage")
+    st.write(min_run_percentages[['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']])
+    st.header("Lowest Pass Percentage")
+    st.write(min_pass_percentages[['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']])
 
 sorted_dnd = dnd.sort_values(by=['Down & Distance', 'Run %'], ascending=[True, False])
 sorted_dnd_pass = dnd.sort_values(by=['Down & Distance', 'Pass %'], ascending=[True, False])
