@@ -113,6 +113,13 @@ sorted_dnd_pass = dnd.sort_values(by=['Down & Distance', 'Pass %'], ascending=[T
 sorted_fp = field_positions.sort_values(by=['Field Position', 'Run %'], ascending=[True, False])
 sorted_fp_pass = field_positions.sort_values(by=['Field Position', 'Pass %'], ascending=[True, False])
 
+# Add ranking columns
+sorted_dnd['Run Rank'] = sorted_dnd.groupby('Down & Distance').cumcount() + 1
+sorted_dnd_pass['Pass Rank'] = sorted_dnd_pass.groupby('Down & Distance').cumcount() + 1
+
+sorted_fp['Run Rank'] = sorted_fp.groupby('Field Position').cumcount() + 1
+sorted_fp_pass['Pass Rank'] = sorted_fp_pass.groupby('Field Position').cumcount() + 1
+
 # Display the sorted data for Down & Distance
 st.subheader("Down & Distance Sorted by Run Percentage")
 st.dataframe(sorted_dnd, width=1000)
