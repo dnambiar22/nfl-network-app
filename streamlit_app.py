@@ -16,7 +16,6 @@ week_1_matchups = ['BAL @ KC', 'GB @ PHI', 'PIT @ ATL', 'ARI @ BUF', 'TEN @ CHI'
 jax_dnd_filtered = dnd.loc[dnd['Team'] == 'JAX', ['Team', 'Down & Distance', 'Run %', 'Pass %']]
 mia_dnd_filtered = dnd.loc[dnd['Team'] == 'MIA', ['Team', 'Down & Distance', 'Run %', 'Pass %']]
 
-# Add images for JAX and MIA
 jax_image_url = "jax_img.png"  
 mia_image_url = "mia_img.png" 
 
@@ -24,18 +23,18 @@ col3, col4 = st.columns([10, 10])
 
 with col3:
     st.header("")
-    st.image(jax_image_url, width=100)  # Adjust the width as needed
+    st.image(jax_image_url, width=100)
     st.header("JAX Data")
     st.dataframe(jax_dnd_filtered, width=1000)
 
 with col4:
     st.header("")
-    st.image(mia_image_url, width=100)  # Adjust the width as needed
+    st.image(mia_image_url, width=100)
     st.header("MIA Data")
     st.dataframe(mia_dnd_filtered, width=1000)
 
-jax_fp_filtered = field_positions.loc[field_positions['Team'] == 'JAX', [ 'Field Position', 'Run %', 'Pass %']]
-mia_fp_filtered = field_positions.loc[field_positions['Team'] == 'MIA', [ 'Field Position', 'Run %', 'Pass %']]
+jax_fp_filtered = field_positions.loc[field_positions['Team'] == 'JAX', ['Field Position', 'Run %', 'Pass %']]
+mia_fp_filtered = field_positions.loc[field_positions['Team'] == 'MIA', ['Field Position', 'Run %', 'Pass %']]
 
 st.header("Field Position Data for JAX and MIA")
 
@@ -85,51 +84,52 @@ sums = grouped[['Total Runs', 'Total Passes', 'Total Plays']].sum()
 sums['Run %'] = (sums['Total Runs'] / sums['Total Plays']) * 100
 sums['Pass %'] = (sums['Total Passes'] / sums['Total Plays']) * 100
 
-# Reset the index to ensure 'Down & Distance' and 'Team' are columns
 sums = sums.reset_index()
 
-max_run_percentages = sums.groupby('Down & Distance', group_keys=False).apply(lambda x: x.nlargest(1, 'Run %')).reset_index(drop=True)
-max_pass_percentages = sums.groupby('Down & Distance', group_keys=False).apply(lambda x: x.nlargest(1, 'Pass %')).reset_index(drop=True)
+max_run_percentages = sums.groupby('Down & Distance')['Run %'].idxmax()
+max_run_percentages = sums.loc[max_run_percentages, ['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']]
 
-min_run_percentages = sums.groupby('Down & Distance', group_keys=False).apply(lambda x: x.nsmallest(1, 'Run %')).reset_index(drop=True)
-min_pass_percentages = sums.groupby('Down & Distance', group_keys=False).apply(lambda x: x.nsmallest(1, 'Pass %')).reset_index(drop=True)
+max_pass_percentages = sums.groupby('Down & Distance')['Pass %'].idxmax()
+max_pass_percentages = sums.loc[max_pass_percentages, ['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']]
+
+min_run_percentages = sums.groupby('Down & Distance')['Run %'].idxmin()
+min_run_percentages = sums.loc[min_run_percentages, ['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']]
+
+min_pass_percentages = sums.groupby('Down & Distance')['Pass %'].idxmin()
+min_pass_percentages = sums.loc[min_pass_percentages, ['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']]
 
 st.header("Team with the Highest Run Percentage")
-st.write(max_run_percentages[['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']])
+st.write(max_run_percentages)
 
 st.header("Team with the Highest Pass Percentage")
-st.write(max_pass_percentages[['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']])
+st.write(max_pass_percentages)
 
 st.header("Team with the Lowest Run Percentage")
-st.write(min_run_percentages[['Down & Distance', 'Team', 'Run %', 'Total Runs', 'Total Plays']])
+st.write(min_run_percentages)
 
 st.header("Team with the Lowest Pass Percentage")
-st.write(min_pass_percentages[['Down & Distance', 'Team', 'Pass %', 'Total Passes', 'Total Plays']])
+st.write(min_pass_percentages)
 
-# Sort the data for Down & Distance and Field Position
 sorted_dnd = dnd.sort_values(by=['Down & Distance', 'Run %'], ascending=[True, False])
 sorted_dnd_pass = dnd.sort_values(by=['Down & Distance', 'Pass %'], ascending=[True, False])
 
 sorted_fp = field_positions.sort_values(by=['Field Position', 'Run %'], ascending=[True, False])
 sorted_fp_pass = field_positions.sort_values(by=['Field Position', 'Pass %'], ascending=[True, False])
 
-# Add ranking columns
-sorted_dnd['Run Rank'] = sorted_dnd.groupby('Down & Distance').cumcount() + 1
-sorted_dnd_pass['Pass Rank'] = sorted_dnd_pass.groupby('Down & Distance').cumcount() + 1
+sorted_dnd['Rank'] = sorted_dnd.groupby('Down & Distance').cumcount() + 1
+sorted_fp['Rank'] = sorted_fp.groupby('Field Position').cumcount() + 1
 
-sorted_fp['Run Rank'] = sorted_fp.groupby('Field Position').cumcount() + 1
-sorted_fp_pass['Pass Rank'] = sorted_fp_pass.groupby('Field Position').cumcount() + 1
-
-# Display the sorted data for Down & Distance
 st.subheader("Down & Distance Sorted by Run Percentage")
-st.dataframe(sorted_dnd, width=1000)
+st.dataframe(sorted_dnd[['Down & Distance', 'Team', 'Run %', 'Rank']], width=1000)
+
+st.subheader("Field Position Sorted by Run Percentage")
+st.dataframe(sorted_fp[['Field Position', 'Team', 'Run %', 'Rank']], width=1000)
+
+sorted_dnd_pass['Rank'] = sorted_dnd_pass.groupby('Down & Distance').cumcount() + 1
+sorted_fp_pass['Rank'] = sorted_fp_pass.groupby('Field Position').cumcount() + 1
 
 st.subheader("Down & Distance Sorted by Pass Percentage")
-st.dataframe(sorted_dnd_pass, width=1000)
-
-# Display the sorted data for Field Position
-st.subheader("Field Position Sorted by Run Percentage")
-st.dataframe(sorted_fp, width=1000)
+st.dataframe(sorted_dnd_pass[['Down & Distance', 'Team', 'Pass %', 'Rank']], width=1000)
 
 st.subheader("Field Position Sorted by Pass Percentage")
-st.dataframe(sorted_fp_pass, width=1000)
+st.dataframe(sorted_fp_pass[['Field Position', 'Team', 'Pass %', 'Rank']], width=1000)
