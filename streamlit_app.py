@@ -6,6 +6,7 @@ import streamlit as st
 st.title("NFL Network Data Science Practicum Project")
 
 st.subheader("Tendency Report - Breaking Down Jacksonville vs. Miami")
+st.caption("Note: Click three buttons in right corner -> Settings -> Wide Mode for better viewability")
 dnd = pd.read_csv("Leaguewide_NFL_Down and Distance(1).csv")
 field_positions = pd.read_csv("Leaguewide_NFL_Field Positions.csv")
 
